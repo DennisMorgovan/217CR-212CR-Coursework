@@ -22,9 +22,9 @@ Obstacle obstacle2 = Obstacle(glm::vec3(2, 2, 2), glm::vec3(0, 0, 1));
 int CameraMode; //Integer that determines the angle that the camera will take
 float latAngle = 0.0;
 
-GLuint racetrackID = 1; //Unique identification for the display list used in the function loadObj
+GLuint racetrackID = 1, hovercraftID = 1; //Unique identification for the display list used in the function loadObj
 float racetrackrot; //Used to display the imported model (the racetrack in this case) as rotating
-Reader racetrack;
+Reader racetrack, hovercraft;
 
 // Initialization routine. Similar to void Start() in Unity
 void setup(void)
@@ -39,6 +39,7 @@ void setup(void)
 	obstacle2.start();
 
 	racetrack.loadModel((char *)"racetrack_blender.obj", racetrackID);
+	hovercraft.loadModelQuads((char *)"hovercraft_blender_2_quads.obj", hovercraftID);
 }
 
 void resize(int w, int h)
@@ -112,16 +113,18 @@ void initialise(int argc, char **argv)
 //Function that creates the racetrack. Used in the display function.
 void drawRacetrack()
 {
+	//Racetrack transform
 	glPushMatrix();
 	glTranslatef(0, -40.00, -105);
 	glColor3f(1.0, 0.23, 0.27);
 	glScalef(0.1, 0.1, 0.1);
 	glRotatef(racetrackrot, 0, 1, 0);
-
+	
 	//Creates racetrack
 	racetrack.drawObj();
 
 	glPopMatrix();
+	//Racetrack rotation; used for displaying the model
 	racetrackrot = racetrackrot + 0.6;
 	if (racetrackrot > 360)
 		racetrackrot = racetrackrot - 360;
@@ -145,6 +148,7 @@ void display(void)
 	obstacle1.draw();
 	obstacle2.draw();
 
+	/*
 	//Hovercraft
 	glPushMatrix();
 	glTranslatef(0, -40, -50); //Sets cube position
@@ -159,9 +163,22 @@ void display(void)
 	glRotatef(-90, 0, 1, 0); //Sets cone rotation
 	glutSolidCone(2, 2, 30, 30); //Creates cone shape
 	glPopMatrix();
-
+	*/
 	//Racetrack
 	drawRacetrack();
+
+	
+	//Hovercraft transforms
+	glPushMatrix();
+		glTranslatef(70, -40.00, -105);
+		glColor3f(1.0, 0.23, 0.27);
+		glScalef(4, 4, 4);
+		glRotatef(racetrackrot, 0, 1, 0);
+
+		//Hovercraft
+		hovercraft.drawObjQuads();
+	glPopMatrix();
+	
 
 	glutSwapBuffers(); //swap the buffers
 }

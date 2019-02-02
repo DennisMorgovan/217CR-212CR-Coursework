@@ -59,6 +59,45 @@ void Reader::loadObj(char *fname, GLuint uniqueID)
 	fclose(fp);
 }
 
+void Reader::loadObjQuads(char *fname, GLuint uniqueID)
+{
+	this->fp = fopen(fname, "r"); //Opens the file fname
+	this->uniqueID = uniqueID;
+
+	int indexVertex = 0, indexFace = 0;
+
+	while (!(feof(fp))) //While not at the end of the file
+	{
+		read = fscanf(fp, "%c %f %f %f %f", &character, &x, &y, &z, &w); // Reads lines as sets of character, x coord, y coord, z coord, and returns the number of elements successfully read
+		if (read == 4 && character == 'v') //If the number of elements read is equal to 4 (char, x, y and z) and the character is v (if it's a vertex), add it to vertices vector
+		{
+			//Adds coordinates to their respective vector
+			vertices[indexVertex].x = x;
+			vertices[indexVertex].y = y;
+			vertices[indexVertex].z = z;
+
+			g << indexVertex << " " << vertices[indexVertex].x << " " << vertices[indexVertex].y << " " << vertices[indexVertex].z << std::endl; //Used for debugging
+			indexVertex++;
+		}
+		else
+			if (read == 5 && character == 'f') //If we are reading face information, create the face using pre-existing vertex information
+			{
+				//Adds face information to the respective face vector
+				faces[indexFace].x = x;
+				faces[indexFace].y = y;
+				faces[indexFace].z = z;
+				faces[indexFace].w = w;
+
+				g << "f " << faces[indexFace].x << " " << faces[indexFace].y << " " << faces[indexFace].z << std::endl; // Debugging
+				indexFace++;
+			}
+
+	}
+	faceNumber = indexFace; //Correctly assigns the number of faces
+
+	fclose(fp);
+}
+
 void Reader::calculateNormals()
 {
 	int i, id1, id2, id3;
@@ -122,6 +161,12 @@ void Reader::loadModel(char *fname, GLuint uniqueID)
 	calculateNormals();
 }
 
+void Reader::loadModelQuads(char *fname, GLuint uniqueID)
+{
+	loadObjQuads(fname, uniqueID);
+	calculateNormals();
+}
+
 void Reader::drawObj()
 {
 	int id;
@@ -135,15 +180,15 @@ void Reader::drawObj()
 			{
 				id = (int)faces[i].x;
 				glNormal3d(normal[id].x, normal[id].y, normal[id].z);
-				glVertex3f(this->vertices[(int)faces[i].x - 1].x, this->vertices[(int)faces[i].x - 1].y, this->vertices[(int)faces[i].x - 1].z);
+				glVertex3f(vertices[id - 1].x, vertices[id - 1].y, vertices[id - 1].z);
 
 				id = (int)faces[i].y;
 				glNormal3d(normal[id].x, normal[id].y, normal[id].z);
-				glVertex3f(this->vertices[(int)faces[i].y - 1].x, this->vertices[(int)faces[i].y - 1].y, this->vertices[(int)faces[i].y - 1].z);
+				glVertex3f(vertices[id - 1].x, vertices[id - 1].y, vertices[id - 1].z);
 
 				id = (int)faces[i].z;
 				glNormal3d(normal[id].x, normal[id].y, normal[id].z);
-				glVertex3f(this->vertices[(int)faces[i].z - 1].x, this->vertices[(int)faces[i].z - 1].y, this->vertices[(int)faces[i].z - 1].z);
+				glVertex3f(vertices[id - 1].x, vertices[id - 1].y, vertices[id - 1].z);
 			}
 			glEnd();
 		glPopMatrix();
@@ -151,6 +196,34 @@ void Reader::drawObj()
 	}glEndList();
 
 	glCallList(this->uniqueID);
+}
+
+void Reader::drawObjQuads()
+{
+	int id, i;
+
+	glBegin(GL_QUADS);
+	for (i = 0; i < faceNumber; i++)
+	{
+		id = (int)faces[i].x;
+		glNormal3d(normal[id].x, normal[id].y, normal[id].z);
+		glVertex3f(vertices[id - 1].x, vertices[id - 1].y, vertices[id - 1].z);
+
+		id = (int)faces[i].y;
+		glNormal3d(normal[id].x, normal[id].y, normal[id].z);
+		glVertex3f(vertices[id - 1].x, vertices[id - 1].y, vertices[id - 1].z);
+
+		id = (int)faces[i].z;
+		glNormal3d(normal[id].x, normal[id].y, normal[id].z);
+		glVertex3f(vertices[id - 1].x, vertices[id - 1].y, vertices[id - 1].z);
+
+		id = (int)faces[i].w;
+		glNormal3d(normal[id].x, normal[id].y, normal[id].z);
+		glVertex3f(vertices[id - 1].x, vertices[id - 1].y, vertices[id - 1].z);
+	}
+
+	glEnd();
+
 }
 
 
