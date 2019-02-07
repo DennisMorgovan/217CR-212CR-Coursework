@@ -202,28 +202,34 @@ void Reader::drawObjQuads()
 {
 	int id, i;
 
-	glBegin(GL_QUADS);
-	for (i = 0; i < faceNumber; i++)
+	glPointSize(2.0); //Sets vertex draw size
+	glNewList(this->uniqueID, GL_COMPILE);
 	{
-		id = (int)faces[i].x;
-		glNormal3d(normal[id].x, normal[id].y, normal[id].z);
-		glVertex3f(vertices[id - 1].x, vertices[id - 1].y, vertices[id - 1].z);
+		glPushMatrix();
+		glBegin(GL_QUADS);
+		for (i = 0; i < faceNumber; i++)
+		{
+			id = (int)faces[i].x;
+			glNormal3d(normal[id].x, normal[id].y, normal[id].z);
+			glVertex3f(vertices[id - 1].x, vertices[id - 1].y, vertices[id - 1].z);
 
-		id = (int)faces[i].y;
-		glNormal3d(normal[id].x, normal[id].y, normal[id].z);
-		glVertex3f(vertices[id - 1].x, vertices[id - 1].y, vertices[id - 1].z);
+			id = (int)faces[i].y;
+			glNormal3d(normal[id].x, normal[id].y, normal[id].z);
+			glVertex3f(vertices[id - 1].x, vertices[id - 1].y, vertices[id - 1].z);
 
-		id = (int)faces[i].z;
-		glNormal3d(normal[id].x, normal[id].y, normal[id].z);
-		glVertex3f(vertices[id - 1].x, vertices[id - 1].y, vertices[id - 1].z);
+			id = (int)faces[i].z;
+			glNormal3d(normal[id].x, normal[id].y, normal[id].z);
+			glVertex3f(vertices[id - 1].x, vertices[id - 1].y, vertices[id - 1].z);
 
-		id = (int)faces[i].w;
-		glNormal3d(normal[id].x, normal[id].y, normal[id].z);
-		glVertex3f(vertices[id - 1].x, vertices[id - 1].y, vertices[id - 1].z);
-	}
+			id = (int)faces[i].w;
+			glNormal3d(normal[id].x, normal[id].y, normal[id].z);
+			glVertex3f(vertices[id - 1].x, vertices[id - 1].y, vertices[id - 1].z);
+		}
+		glEnd();
+		glPopMatrix();
+	}glEndList();
 
-	glEnd();
-
+	glCallList(this->uniqueID);
 }
 
 

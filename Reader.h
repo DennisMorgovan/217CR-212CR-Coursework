@@ -1,3 +1,5 @@
+#pragma once 
+
 #ifndef OPENGL_INCLUDES
 #define OPENGL_INCLUDES
 #  include <GL/glew.h>

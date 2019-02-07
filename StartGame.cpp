@@ -9,8 +9,12 @@
 #include<math.h>
 #include<fstream>
 #include<vector>
-#include "Obstacle.h";
+#include "Obstacle.h"
 #include "Reader.h"
+#include "Hovercraft.h"
+#include "Racetrack.h"
+#include "Camera.h"
+#include<iostream>
 using namespace std;
 
 #define PI 3.14159265
@@ -18,13 +22,19 @@ using namespace std;
 //Globals
 Obstacle obstacle1 = Obstacle(glm::vec3(0, 0, 0), glm::vec3(1, 0, 0));
 Obstacle obstacle2 = Obstacle(glm::vec3(2, 2, 2), glm::vec3(0, 0, 1));
+//float angle = 0.0; //Angle of the hovercraft that will be modified via key input
+//float xCoord = 0, zCoord = 0; //x and z coordinates that will be modified via key input
 
 int CameraMode; //Integer that determines the angle that the camera will take
-float latAngle = 0.0;
 
 GLuint racetrackID = 1, hovercraftID = 1; //Unique identification for the display list used in the function loadObj
-float racetrackrot; //Used to display the imported model (the racetrack in this case) as rotating
-Reader racetrack, hovercraft;
+
+glm::vec3 cameraUp(0, 1, 0), cameraCorrection(20 * cos(0), 10, 20 * sin(0)); //Camera variables.
+
+//Object hovercraft;
+Hovercraft hovercraft(glm::vec3(0, 0, 0), (char *)"hovercraft_blender_final.obj", hovercraftID); //Takes in a position vector, the model's path and the base ID of the hovercraft.
+Racetrack racetrack(glm::vec3(0, -40.00, -105), (char *)"racetrack_blender.obj", racetrackID);
+Camera camera(&hovercraft, cameraUp, cameraCorrection); //Camera; requires a pointer to a hovercraft, an "up" vector
 
 // Initialization routine. Similar to void Start() in Unity
 void setup(void)
@@ -37,16 +47,13 @@ void setup(void)
 
 	obstacle1.start();
 	obstacle2.start();
-
-	racetrack.loadModel((char *)"racetrack_blender.obj", racetrackID);
-	hovercraft.loadModelQuads((char *)"hovercraft_blender_2_quads.obj", hovercraftID);
 }
 
 void resize(int w, int h)
 {
 	glViewport(0, 0, w, h);
 
-	glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH);
+	//glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
 	/* set up depth-buffering */
 	glEnable(GL_DEPTH_TEST);
 
@@ -83,11 +90,16 @@ void keyInput(unsigned char key, int x, int y)
 	}
 }
 
+//Function that processes movement key inputs and modifies hovercraft global x,z and angle values accordingly.
+void specialKeyInput(int key, int x, int y)
+{
+	hovercraft.movement(key);
+
+	glutPostRedisplay();
+}
+
 void animate() {
-
-	//latAngle += 0.1; //Rotates the sphere
-	//if (latAngle > 360.0) latAngle -= 360.0;
-
+	
 	/* refresh screen */
 	glutPostRedisplay();
 }
@@ -104,82 +116,41 @@ void initialise(int argc, char **argv)
 
 	glutInitContextVersion(4, 3);
 	glutInitContextProfile(GLUT_COMPATIBILITY_PROFILE);
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH); //GLUT_DOUBLE - double buffered window; GLUT_RGBA - rgba mode bit mask; GLUT_DEPTH - depth buffer
 	glutInitWindowSize(1920, 1080);
 	glutInitWindowPosition(100, 100);
 	glutCreateWindow("Hovercraft Program");
-}
-
-//Function that creates the racetrack. Used in the display function.
-void drawRacetrack()
-{
-	//Racetrack transform
-	glPushMatrix();
-	glTranslatef(0, -40.00, -105);
-	glColor3f(1.0, 0.23, 0.27);
-	glScalef(0.1, 0.1, 0.1);
-	glRotatef(racetrackrot, 0, 1, 0);
-	
-	//Creates racetrack
-	racetrack.drawObj();
-
-	glPopMatrix();
-	//Racetrack rotation; used for displaying the model
-	racetrackrot = racetrackrot + 0.6;
-	if (racetrackrot > 360)
-		racetrackrot = racetrackrot - 360;
 }
 
 void display(void)
 {
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glLoadIdentity();
+	//glLoadIdentity();
 
 	//Camera mode; change camera mode using keys
+	/*
 	if (CameraMode == 0)
 		gluLookAt(0.0, 0.0, 15.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0); //fix camera
 	else if (CameraMode == 1)
 		gluLookAt(0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0); //an exampleof fix camera
 	else
 		gluLookAt(0.0, 0.0, 7.0, 3.0, 0.0, 3.0, 0.0, 1.0, 0.0); //an exampleof fix camera
+		*/
 
 	//Obstacles
 	obstacle1.draw();
 	obstacle2.draw();
 
-	/*
-	//Hovercraft
-	glPushMatrix();
-	glTranslatef(0, -40, -50); //Sets cube position
-	glColor3f(1, 1, 1); //Sets cube colour
-	glutSolidCube(2); //Creates cube shape
-	glPopMatrix();
-
-	//Hovercraft front
-	glPushMatrix();
-	glColor3f(-2, 0, 2); //Sets cone colour
-	glTranslatef(-2, -40, -50); //Sets cone position
-	glRotatef(-90, 0, 1, 0); //Sets cone rotation
-	glutSolidCone(2, 2, 30, 30); //Creates cone shape
-	glPopMatrix();
-	*/
 	//Racetrack
-	drawRacetrack();
+	racetrack.draw();
 
-	
+	//hovercraft.position.x = xCoord; hovercraft.position.z = zCoord; //Updating the coordinates of the hovercraft based on input
+	camera.update(); //Updating camera position
+
 	//Hovercraft transforms
-	glPushMatrix();
-		glTranslatef(70, -40.00, -105);
-		glColor3f(1.0, 0.23, 0.27);
-		glScalef(4, 4, 4);
-		glRotatef(racetrackrot, 0, 1, 0);
-
-		//Hovercraft
-		hovercraft.drawObjQuads();
-	glPopMatrix();
+	hovercraft.draw();
 	
-
 	glutSwapBuffers(); //swap the buffers
 }
 
@@ -195,7 +166,8 @@ int main(int argc, char **argv)
 	glutDisplayFunc(display); //Sets callback function for displaying
 	glutReshapeFunc(resize); //Sets what function to be callbacked in order to resize the window
 	glutKeyboardFunc(keyInput); //Sets what function to be callbacked when pressing a specific key 
-	glutIdleFunc(idle); //Sets what function to be callbacked when idle
+	glutSpecialFunc(specialKeyInput);
+	glutIdleFunc(animate); //Sets what function to be callbacked when idle
 
 	glewExperimental = GL_TRUE;
 	glewInit();
@@ -203,6 +175,8 @@ int main(int argc, char **argv)
 	setup();
 	CameraMode = 0;
 
-
 	glutMainLoop(); //Starts game loop
 }
+
+//Framerate on right side of screen; make camera follow hovercraft, finish up hovercraft class; make inheritance of hovercraft work
+//Acceleration

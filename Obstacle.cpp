@@ -6,15 +6,12 @@
 #  include <glm/glm.hpp> 
 #pragma comment(lib, "glew32.lib") 
 #endif 
-
 #include "Obstacle.h"
 
-Obstacle::Obstacle(glm::vec3 position, glm::vec3 objColour)
+
+Obstacle::Obstacle(glm::vec3 position, glm::vec3 objColour) : GameObject(position)
 {
-	this->position = position;
-	this->colour.x = objColour.x;
-	this->colour.y = objColour.y;
-	this->colour.z = objColour.z;
+	this->colour = objColour;
 }
 
 Obstacle::~Obstacle()

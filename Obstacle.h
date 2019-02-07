@@ -1,22 +1,13 @@
 #pragma once
-#ifndef OPENGL_INCLUDES
-#define OPENGL_INCLUDES
-#  include <GL/glew.h>
-#  include <GL/freeglut.h>
-#  include <GL/glext.h>
-#  include <glm/glm.hpp> 
-#pragma comment(lib, "glew32.lib") 
-#endif 
+#include "GameObject.h"
 
 //Class for game obstacles
-class Obstacle
+class Obstacle : public GameObject
 {
 private:
-	glm::vec3 position; //Object pos
-	unsigned int base;
 	glm::vec3 colour; //Object colour
 public:
-	Obstacle(glm::vec3 position, glm::vec3 objColour);
+	Obstacle(glm::vec3 position, glm::vec3 objColour = {0, 0, 1});
 	~Obstacle();
 
 	void draw();
