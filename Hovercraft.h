@@ -18,7 +18,4 @@ public:
 	virtual void update(int deltaTime);
 
 	void movement(int key);
-
-	//void movement();
-	//unsigned int setupDrawing(char *fname, unsigned int listBase);
 };

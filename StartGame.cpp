@@ -98,6 +98,18 @@ void specialKeyInput(int key, int x, int y)
 	glutPostRedisplay();
 }
 
+// Mouse callback routine.
+void mouseControl(int key, int state, int x, int y)
+{
+	camera.mouseControl(key, state, x, y);
+}
+
+// Mouse motion callback routine.
+void mouseMotion(int x, int y)
+{
+	camera.mouseMotion(x, y);
+}
+
 void animate() {
 	
 	/* refresh screen */
@@ -126,17 +138,6 @@ void display(void)
 {
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glLoadIdentity();
-
-	//Camera mode; change camera mode using keys
-	/*
-	if (CameraMode == 0)
-		gluLookAt(0.0, 0.0, 15.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0); //fix camera
-	else if (CameraMode == 1)
-		gluLookAt(0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0); //an exampleof fix camera
-	else
-		gluLookAt(0.0, 0.0, 7.0, 3.0, 0.0, 3.0, 0.0, 1.0, 0.0); //an exampleof fix camera
-		*/
 
 	//Obstacles
 	obstacle1.draw();
@@ -169,6 +170,12 @@ int main(int argc, char **argv)
 	glutSpecialFunc(specialKeyInput);
 	glutIdleFunc(animate); //Sets what function to be callbacked when idle
 
+	// Register the mouse callback function.
+    glutMouseFunc(mouseControl); 
+
+    // Register the mouse motion callback function.
+    glutMotionFunc(mouseMotion);
+
 	glewExperimental = GL_TRUE;
 	glewInit();
 
@@ -180,3 +187,4 @@ int main(int argc, char **argv)
 
 //Framerate on right side of screen; make camera follow hovercraft, finish up hovercraft class; make inheritance of hovercraft work
 //Acceleration
+//Make rotation using mosue wheel
