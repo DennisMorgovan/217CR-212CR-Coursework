@@ -2,9 +2,12 @@
 
 #define PI 3.14159265
 
-Hovercraft::Hovercraft(glm::vec3 position, char *fname, GLuint uniqueID) : GameObject(position)
+Hovercraft::Hovercraft(glm::vec3 position, char *fnameBody, char *fnamePropeller, GLuint uniqueID) : GameObject(position)
 {
-	hovercraft.loadModelQuads(fname, uniqueID);
+	hovercraft.loadModelQuads(fnameBody, uniqueID);
+	hovercraftPropeller.loadModelQuads(fnamePropeller, uniqueID);
+	propellerRot = false;
+	propellerAngle = 0.0f;
 }
 
 
@@ -12,9 +15,10 @@ Hovercraft::~Hovercraft()
 {
 }
 
-void Hovercraft::start(char *fname, GLuint uniqueID)
+void Hovercraft::start(char *fnameBody,char *fnamePropeller, GLuint uniqueID)
 {
-	hovercraft.loadModelQuads(fname, uniqueID);
+	hovercraft.loadModelQuads(fnameBody, uniqueID);
+	//hovercraftPropeller.loadModelQuads(fnamePropeller, uniqueID);
 }
 
 void Hovercraft::update(int deltaTime)
@@ -23,17 +27,31 @@ void Hovercraft::update(int deltaTime)
 
 void Hovercraft::draw()
 {
+	float matAmb1[] = { 0.0, 0.0, 1.0, 1.0 };
+	float matDif1[] = { 0.0, 0.0, 1.0, 1.0 };
+
 	glPushMatrix();
 		glTranslatef(position.x, 0.0, position.z);
-		glColor3f(1.0, 0.23, 0.27);
+		glColor3f(0.6, 1, 0.8);
 		glScalef(0.5, 0.5, 0.5);
 		glRotatef(angle, 0, 1, 0);
 	
 		glPushMatrix();
-			glRotatef(180, 0, 1, 0); //Rotates the hovercraft into the correct position at star
+			glRotatef(180, 0, 1, 0); //Rotates the hovercraft into the correct position at start
+			glMaterialfv(GL_FRONT, GL_AMBIENT, matAmb1);
+			glMaterialfv(GL_FRONT, GL_DIFFUSE, matDif1);
 			hovercraft.drawObjQuads();
+
+			glPushMatrix();
+				if(propellerRot == true)
+					glRotatef(angle + propellerAngle, 0, 1, 0);
+				hovercraftPropeller.drawObjQuads();
+			glPopMatrix();
+
 		glPopMatrix();
 	glPopMatrix();
+
+
 }
 
 void Hovercraft::movement(int key)
@@ -47,6 +65,9 @@ void Hovercraft::movement(int key)
 	{
 		position.x = position.x - sin(angle * PI / 180.0);
 		position.z = position.z - cos(angle * PI / 180.0);
+		propellerRot = true;
+		propellerAngle += 5.0f;
+
 	}
 	if (key == GLUT_KEY_DOWN)
 	{
@@ -59,4 +80,8 @@ void Hovercraft::movement(int key)
 		angle -= 360.0;
 	if (angle < 0.0)
 		angle += 360.0;
+
+	if (propellerAngle > 360.0)
+		propellerAngle -= 360.0;
+	propellerRot = false;
 }

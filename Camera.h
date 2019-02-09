@@ -18,6 +18,7 @@ private:
 	float deltaX, deltaY;
 public:
 	glm::vec3 cameraPos, cameraTarget, cameraUp, cameraCorrection;
+	int cameraMode;
 
 	Camera(Hovercraft* hovercraft, glm::vec3 cameraUp, glm::vec3 cameraCorrection);
 	~Camera();
