@@ -25,11 +25,16 @@ void Camera::update()
 	cameraPos = hovercraft->position + cameraCorrection;
 	cameraTarget = hovercraft->position;
 
-	cameraPos.x += heading;
-	cameraPos.z += pitch;
-
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+
+	//cameraPos.x += heading;
+	//cameraPos.z += pitch;
+	//glPushMatrix();
+
+	glTranslatef(0, 3.5, 0); //Move propeller back to where it started
+	glRotatef(angle, 0, 1, 0); //Apply rotation via the angle about the z axis
+	glTranslatef(0, -3.5, 0); //Move propeller to origin
 
 	if (cameraMode == 0)
 		gluLookAt(cameraPos.x, cameraPos.y, cameraPos.z, cameraTarget.x, cameraTarget.y, cameraTarget.z, cameraUp.x, cameraUp.y, cameraUp.z); //3rd person view from the back
@@ -41,11 +46,13 @@ void Camera::update()
 		gluLookAt(cameraTarget.x, 15, cameraTarget.z - 20 * sin(hovercraft->angle * PI / 180.0), cameraTarget.x, 0.0, cameraTarget.z, 0.0, 1.0, 0.0);
 	else if (cameraMode == 4) //Side camera left
 		gluLookAt(cameraTarget.x, 15, cameraTarget.z + 20 * sin(hovercraft->angle * PI / 180.0), cameraTarget.x, 0.0, cameraTarget.z, 0.0, 1.0, 0.0);
+	//glPopMatrix();
 }
 
 void Camera::mouseControl(int key, int state, int x, int y)
 {
-	if (key == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+	//if (key == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+	if (this->hovercraft->specialKeys[GLUT_LEFT_BUTTON])
 	{
 			buttonDown = x;
 			angle += 3.0f;

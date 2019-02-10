@@ -38,6 +38,21 @@ Lighting lighting;
 
 int msaa = 1; //Multisampling
 
+int lastTime = 0, currentTime = 0;
+
+//Stores keys as pairs of key and state (true = pressed, false = released)
+std::map <int, bool> GameObject::specialKeys;
+std::map <char, bool> GameObject::keys;
+
+static long font = (long)GLUT_BITMAP_8_BY_13; // Font selection.
+
+// Routine to draw a bitmap character string.
+void writeBitmapString(void *font, char *string)
+{
+	char *c;
+
+	for (c = string; *c != '\0'; c++) glutBitmapCharacter(font, *c);
+}
 
 // Initialization routine. Similar to void Start() in Unity
 void setup(void)
@@ -112,7 +127,7 @@ void keyInput(unsigned char key, int x, int y)
 //Function that processes movement key inputs and modifies hovercraft global x,z and angle values accordingly.
 void specialKeyInput(int key, int x, int y)
 {
-	hovercraft.movement(key);
+	//hovercraft.movement(key);
 
 	glutPostRedisplay();
 }
@@ -137,6 +152,34 @@ void animate() {
 
 void idle()
 {
+	//Calculates delta time (in ms)
+	lastTime = currentTime;
+	currentTime = glutGet(GLUT_ELAPSED_TIME);
+	int deltaTime = currentTime - lastTime;
+
+	//If the last frame was rendered less than 1 ms ago, the detalaTime will be 0 ms. This causes problems in calculations, so sleep for 1ms to adjust.
+	if (deltaTime == 0) {
+		Sleep(1);
+		currentTime = glutGet(GLUT_ELAPSED_TIME);
+		deltaTime = currentTime - lastTime;
+	}
+
+	std::cout << "FPS: " << 1000 / deltaTime << endl;
+
+	//Run update for all game objects.
+	//for (std::vector<GameObject*>::size_type i = 0; i != gameobjects.size(); i++) {
+	//	gameobjects[i]->update(deltaTime);
+	//}	
+
+	   // Write text in isolated (i.e., before gluLookAt) translate block.
+	glPushMatrix();
+		glColor3f(1.0, 0.0, 0.0);
+		glRasterPos2f(20, 20);
+		writeBitmapString((void*)font, (char*)"FPS: " + 1000 / deltaTime);
+	glPopMatrix();
+
+	hovercraft.update(deltaTime);
+
 	glutPostRedisplay(); //Refreshes the current window
 }
 
@@ -215,13 +258,35 @@ int main(int argc, char **argv)
 	glutReshapeFunc(resize); //Sets what function to be callbacked in order to resize the window
 	glutKeyboardFunc(keyInput); //Sets what function to be callbacked when pressing a specific key 
 	glutSpecialFunc(specialKeyInput);
-	glutIdleFunc(animate); //Sets what function to be callbacked when idle
 
 	// Register the mouse callback function.
     glutMouseFunc(mouseControl); 
 
     // Register the mouse motion callback function.
     glutMotionFunc(mouseMotion);
+
+	//Lambda functions to link our code to glut's keydown and keyup. Our function deals with both regular and special keys in one.
+	glutKeyboardFunc([](unsigned char key, int x, int y) {
+		GameObject::keys[key] = true;
+		//if we press escape, exit the game
+		if (key == 27) {
+			exit(0);
+		}
+	});
+
+	glutKeyboardUpFunc([](unsigned char key, int x, int y) {
+		GameObject::keys[key] = false;
+	});
+
+	glutSpecialFunc([](int key, int x, int y) {
+		GameObject::specialKeys[key] = true;
+	});
+
+	glutSpecialUpFunc([](int key, int x, int y) {
+		GameObject::specialKeys[key] = false;
+	});
+
+	glutIdleFunc(idle); //Sets what function to be callbacked when idle
 
 	glewExperimental = GL_TRUE;
 	glewInit();
