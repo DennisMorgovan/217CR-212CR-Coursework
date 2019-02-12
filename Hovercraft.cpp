@@ -11,7 +11,6 @@ Hovercraft::Hovercraft(glm::vec3 position, char *fnameBody, char *fnamePropeller
 	propellerAngle = 0.0f;
 }
 
-
 Hovercraft::~Hovercraft()
 {
 }

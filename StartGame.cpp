@@ -16,6 +16,7 @@
 #include "Camera.h"
 #include "Lighting.h"
 #include<iostream>
+#include <stdio.h>
 using namespace std;
 
 #define PI 3.14159265
@@ -35,16 +36,18 @@ Hovercraft hovercraft(glm::vec3(0, 0, 0), (char *)"hovercraft_body_blender.obj",
 Racetrack racetrack(glm::vec3(0, -40.00, -105), (char *)"racetrack_blender.obj", racetrackID);
 Camera camera(&hovercraft, cameraUp, cameraCorrection); //Camera; requires a pointer to a hovercraft, an "up" vector
 Lighting lighting;
+Reader grassField;
 
-int msaa = 1; //Multisampling
+int msaa = 1, shading = 1; //Multisampling
 
-int lastTime = 0, currentTime = 0;
+int lastTime = 0, currentTime = 0, deltaTime = 1, fps;
 
 //Stores keys as pairs of key and state (true = pressed, false = released)
 std::map <int, bool> GameObject::specialKeys;
 std::map <char, bool> GameObject::keys;
 
 static long font = (long)GLUT_BITMAP_8_BY_13; // Font selection.
+static char fpsString[5];
 
 // Routine to draw a bitmap character string.
 void writeBitmapString(void *font, char *string)
@@ -54,22 +57,24 @@ void writeBitmapString(void *font, char *string)
 	for (c = string; *c != '\0'; c++) glutBitmapCharacter(font, *c);
 }
 
+//Converts a float to an array of chars
+void floatToString(char * destStr, int precision, float val)
+{
+	sprintf(destStr, "%f", val);
+	destStr[precision] = '\0';
+}
+
 // Initialization routine. Similar to void Start() in Unity
 void setup(void)
 {
 	glEnable(GL_DEPTH_TEST);
-	glClearColor(0.2, 0.6, 1, 0);
+	glClearColor(0, 0, 0, 0);
 	glEnable(GL_MULTISAMPLE);
+
+	grassField.loadModelQuads((char*)"grass_field_blender.obj", 1);
 
 	//Functions that are called to setup basic OpenGL lighting
 	lighting.setupLighting();
-
-	unsigned int base = glGenLists(2); // Generate display list base. 
-	base = obstacle1.setupDrawing(base);
-	base = obstacle2.setupDrawing(base);
-
-	obstacle1.start();
-	obstacle2.start();
 }
 
 void resize(int w, int h)
@@ -83,52 +88,10 @@ void resize(int w, int h)
 	glMatrixMode(GL_MODELVIEW);
 }
 
-// Keyboard input processing routine.
-void keyInput(unsigned char key, int x, int y)
-{
-	switch (key)
-	{
-	case 27:
-		exit(0);
-		break;
-	case 'a':
-		camera.cameraMode = 0;
-		break;
-	case 's':
-		camera.cameraMode = 1;
-		break;
-	case 'd':
-		camera.cameraMode = 2;
-		break;
-	case 'f':
-		camera.cameraMode = 3;
-		break;
-	case 'g':
-		camera.cameraMode = 4;
-		break;
-	case '1': //Toggles MSAA on/off
-		if (msaa == 1)
-		{
-			glEnable(GL_MULTISAMPLE_ARB);
-			cout << "MSAA on" << endl;
-		}
-		else
-		{
-			glDisable(GL_MULTISAMPLE_ARB);
-			cout << "MSAA off" << endl;
-		}
-		msaa *= -1;
-		break;
-	default:
-		break;
-	}
-}
-
 //Function that processes movement key inputs and modifies hovercraft global x,z and angle values accordingly.
 void specialKeyInput(int key, int x, int y)
 {
 	//hovercraft.movement(key);
-
 	glutPostRedisplay();
 }
 
@@ -155,7 +118,7 @@ void idle()
 	//Calculates delta time (in ms)
 	lastTime = currentTime;
 	currentTime = glutGet(GLUT_ELAPSED_TIME);
-	int deltaTime = currentTime - lastTime;
+	deltaTime = currentTime - lastTime;
 
 	//If the last frame was rendered less than 1 ms ago, the detalaTime will be 0 ms. This causes problems in calculations, so sleep for 1ms to adjust.
 	if (deltaTime == 0) {
@@ -164,19 +127,13 @@ void idle()
 		deltaTime = currentTime - lastTime;
 	}
 
-	std::cout << "FPS: " << 1000 / deltaTime << endl;
+	fps = 1000 / deltaTime;
+	//std::cout << "FPS: " << fps << endl;
 
 	//Run update for all game objects.
 	//for (std::vector<GameObject*>::size_type i = 0; i != gameobjects.size(); i++) {
 	//	gameobjects[i]->update(deltaTime);
 	//}	
-
-	   // Write text in isolated (i.e., before gluLookAt) translate block.
-	glPushMatrix();
-		glColor3f(1.0, 0.0, 0.0);
-		glRasterPos2f(20, 20);
-		writeBitmapString((void*)font, (char*)"FPS: " + 1000 / deltaTime);
-	glPopMatrix();
 
 	hovercraft.update(deltaTime);
 
@@ -192,56 +149,47 @@ void initialise(int argc, char **argv)
 	glutInitContextProfile(GLUT_COMPATIBILITY_PROFILE);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_MULTISAMPLE); //GLUT_DOUBLE - double buffered window; GLUT_RGBA - rgba mode bit mask; GLUT_DEPTH - depth buffer
 	glutInitWindowSize(1920, 1080);
-	glutInitWindowPosition(100, 100);
+	glutInitWindowPosition(0, 0);
 	glutCreateWindow("Hovercraft Program");
 }
 
+
 void display(void)
 {
-	float lightPos0[] = { 1.0, 2.0, 0.0, 1.0 };
-	float lightAmb[] = { 0, 0, 0, 1.0 };
-	float lightDifAndSpec0[] = { 1.0, 1.0, 1.0, 1.0 };
-
-	// Light0 properties.
-	glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmb);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDifAndSpec0);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, lightDifAndSpec0);
-
-	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	floatToString(fpsString, 4, fps);
+
+	cout << fpsString << endl;
+
+	// Write text in isolated (i.e., before gluLookAt) translate block.
+	glPushMatrix();
+		glColor3f(1.0, 1.0, 1.0);
+		glScalef(2, 2, 2);
+		glWindowPos2f(1700, 1000);
+		writeBitmapString((void*)font, (char *)"FPS: ");
+		glWindowPos2f(1750, 1000);
+		writeBitmapString((void*)font, fpsString);
+	glPopMatrix();
 
 	//grass field
 	glPushMatrix();
 		glColor3f(0, 1, 0);
-		glScalef(500, 500, 500);
-		glBegin(GL_QUADS);
-			glVertex3f(5, 0, 5);
-			glVertex3f(-5, 0, 5);
-			glVertex3f(-5, 0, -5);
-			glVertex3f(5, 0, -5);
-		glEnd();
+		glTranslatef(0, 0, 0);
+		grassField.drawObjQuads();
 	glPopMatrix();
-
-	//Obstacles
-	obstacle1.draw();
-	obstacle2.draw();
-
+	
 	//Racetrack
 	racetrack.draw();
+
+	lighting.drawLighting();
+
+	lighting.drawSpotlight(&hovercraft);
 
 	camera.update(); //Updating camera position
 
 	//Hovercraft transforms
 	hovercraft.draw();
 
-	//Sets light position
-	glPushMatrix();
-		lightPos0[0] = 50; lightPos0[1] = 50; lightPos0[2] = 0.0;
-		glRotatef(45, 1, 0, 0);
-		glLightfv(GL_LIGHT0, GL_POSITION, lightPos0);
-		glTranslatef(lightPos0[0], lightPos0[1], lightPos0[2]);
-	glPopMatrix();
-	
 	glutSwapBuffers(); //swap the buffers
 }
 
@@ -256,7 +204,7 @@ int main(int argc, char **argv)
 
 	glutDisplayFunc(display); //Sets callback function for displaying
 	glutReshapeFunc(resize); //Sets what function to be callbacked in order to resize the window
-	glutKeyboardFunc(keyInput); //Sets what function to be callbacked when pressing a specific key 
+	//glutKeyboardFunc(keyInput); //Sets what function to be callbacked when pressing a specific key 
 	glutSpecialFunc(specialKeyInput);
 
 	// Register the mouse callback function.
@@ -271,6 +219,38 @@ int main(int argc, char **argv)
 		//if we press escape, exit the game
 		if (key == 27) {
 			exit(0);
+		}
+		else if(key == '1')
+			camera.cameraMode = 0;
+		else if (key == '2')
+			camera.cameraMode = 1;
+		else if (key == '3')
+			camera.cameraMode = 2;
+		else if (key == '4')
+			camera.cameraMode = 3;
+		else if (key == '5')
+			camera.cameraMode = 4;
+		else if (key == 'x')
+		{ 
+			if (msaa == 1)
+			{
+				glEnable(GL_MULTISAMPLE_ARB);
+				cout << "MSAA on" << endl;
+			}
+			else
+			{
+				glDisable(GL_MULTISAMPLE_ARB);
+				cout << "MSAA off" << endl;
+			}
+			msaa *= -1;
+		}
+		else if (key == 'c')
+		{
+			if (shading == 1)
+				glShadeModel(GL_SMOOTH);
+			else
+				glShadeModel(GL_FLAT);
+			shading *= -1;
 		}
 	});
 
@@ -297,6 +277,11 @@ int main(int argc, char **argv)
 	glutMainLoop(); //Starts game loop
 }
 
-//Framerate on right side of screen; make camera follow hovercraft, finish up hovercraft class; make inheritance of hovercraft work
+
 //Acceleration
 //Make rotation using mosue wheel
+//Add GameEngine class
+//Make windmill + terrain
+//animate light - spotlight
+//Fix moving spotlight
+//loadidentity

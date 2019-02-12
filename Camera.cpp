@@ -28,8 +28,8 @@ void Camera::update()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	//cameraPos.x += heading;
-	//cameraPos.z += pitch;
+	cameraPos.x += heading;
+	cameraPos.z += pitch;
 	//glPushMatrix();
 
 	glTranslatef(0, 3.5, 0); //Move propeller back to where it started
@@ -41,11 +41,11 @@ void Camera::update()
 	else if (cameraMode == 1)
 		gluLookAt(cameraPos.x, cameraPos.y + 50, cameraPos.z, cameraTarget.x, cameraTarget.y, cameraTarget.z, cameraUp.x, cameraUp.y, cameraUp.z); //View from the top
 	else if (cameraMode == 2)
-		gluLookAt(cameraPos.x - 20 * sin(hovercraft->angle * PI / 180.0), cameraPos.y, cameraPos.z, cameraTarget.x, cameraTarget.y, cameraTarget.z, cameraUp.x, cameraUp.y, cameraUp.z); //View from the front
+		gluLookAt(cameraPos.x + 20 * hovercraft->heading.x, cameraPos.y, cameraPos.z , cameraTarget.x, cameraTarget.y, cameraTarget.z, cameraUp.x, cameraUp.y, cameraUp.z);//View from the front
 	else if (cameraMode == 3) //Side camera right
-		gluLookAt(cameraTarget.x, 15, cameraTarget.z - 20 * sin(hovercraft->angle * PI / 180.0), cameraTarget.x, 0.0, cameraTarget.z, 0.0, 1.0, 0.0);
+		gluLookAt(cameraPos.x + 5 * hovercraft->heading.x, cameraPos.y + 80 * hovercraft->heading.y, cameraPos.z + 10 * hovercraft->heading.z, cameraTarget.x, cameraTarget.y, cameraTarget.z, cameraUp.x, cameraUp.y, cameraUp.z);
 	else if (cameraMode == 4) //Side camera left
-		gluLookAt(cameraTarget.x, 15, cameraTarget.z + 20 * sin(hovercraft->angle * PI / 180.0), cameraTarget.x, 0.0, cameraTarget.z, 0.0, 1.0, 0.0);
+		gluLookAt(cameraTarget.x, cameraPos.y, cameraTarget.z + 20 * sin(hovercraft->angle * PI / 180.0), cameraTarget.x, 0.0, cameraTarget.z, 0.0, 1.0, 0.0);
 	//glPopMatrix();
 }
 
