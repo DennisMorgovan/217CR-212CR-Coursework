@@ -98,11 +98,12 @@ void Reader::loadObjQuads(char *fname, GLuint uniqueID)
 	fclose(fp);
 }
 
+
 void Reader::calculateNormals()
 {
 	int i, id1, id2, id3;
-	float length;
-	Vertex edge1, edge2, testNor, unitNor;
+	float length,dot;
+	Vertex edge1, edge2, testNor, unitNor,upvec;
 
 	for (i = 0; i < faceNumber; i++)
 	{
@@ -138,6 +139,19 @@ void Reader::calculateNormals()
 		unitNor.x = testNor.x / length;
 		unitNor.y = testNor.y / length;
 		unitNor.z = testNor.z / length;
+
+		upvec.x = 0.0f; upvec.y = 1.0f; upvec.z = 0.0f;
+
+		dot = upvec.x*unitNor.x + upvec.y *  unitNor.y + upvec.z * unitNor.z;
+		if (dot < 0.0)
+		{
+			unitNor.x = -unitNor.x;
+			unitNor.y = -unitNor.y;
+			unitNor.z = -unitNor.z;
+			//unitNor.x = 0.0f;
+			//unitNor.y = 1.0f;
+			//unitNor.z = 0.0f;
+		}
 
 		//Assigning the 
 		normal[id1].x = unitNor.x;

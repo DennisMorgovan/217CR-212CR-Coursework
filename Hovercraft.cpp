@@ -2,17 +2,36 @@
 
 #define PI 3.14159265
 
+
 Hovercraft::Hovercraft(glm::vec3 position, char *fnameBody, char *fnamePropeller, GLuint uniqueID) : GameObject(position)
 {
+	Hovercraft::collider = new CubeCollider(&this->position, 1.5, 1.5, 1.5);
+
 	hovercraft.loadModelQuads(fnameBody, uniqueID);
 	hovercraftPropeller.loadModelQuads(fnamePropeller, uniqueID);
 	propellerRotForward = false;
 	propellerRotBackward = false;
 	propellerAngle = 0.0f;
+
+	currentSpeed.x = 0.0;
+	currentSpeed.y = 0.0;
+	currentSpeed.z = 0.0;
+
+	maxSpeed.x = 5.0;
+	maxSpeed.y = 5.0;
+	maxSpeed.z = 5.0;
+
+	velocity.x = 0.0;
+	velocity.y = 0.0;
+	velocity.z = 0.0;
+
+	isDecelerating = false;
 }
 
 Hovercraft::~Hovercraft()
 {
+	delete Hovercraft::collider;
+	Hovercraft::collider = NULL;
 }
 
 void Hovercraft::start(char *fnameBody,char *fnamePropeller, GLuint uniqueID)
@@ -21,23 +40,66 @@ void Hovercraft::start(char *fnameBody,char *fnamePropeller, GLuint uniqueID)
 	hovercraftPropeller.loadModelQuads(fnamePropeller, uniqueID);
 }
 
+float Hovercraft::magnitude(glm::vec3 a)
+{
+	return sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
+}
+
 void Hovercraft::update(int deltaTime)
 {
-	float moveStep = MOVE_SPEED * (deltaTime / 1000.0); //movement speed in units per second * deltaTime in sec = moveStep
 	float turningSpeed = TURNING_SPEED * (deltaTime / 1000.0); //turning speed (degrees/sec) * deltaTime in sec = turning speed over delta time
+	float velocityMagnitude, currentspeedMagnitude, maxspeedMagnitude;//Vector magnitudes
 
-	if (specialKeys[GLUT_KEY_DOWN]) {
-		this->position -= this->heading * moveStep;
-		propellerRotBackward = true;
-		propellerRotForward = false;
-		propellerAngle += 5.0f;
-	}
+	this->acceleration = this->heading * accelFactor * accelInput; //Computing the acceleration
+	glm::vec3 velDelta = velocity * (deltaTime / 1000.0f);
 
-	if (specialKeys[GLUT_KEY_UP]) {
-		this->position += this->heading * moveStep;
+	velocityMagnitude = magnitude(velDelta);
+
+	if (velocityMagnitude != 0) //If magnitude != 0, make current speed equal to normalized velocity vector
+		currentSpeed = velDelta;
+	else
+		currentSpeed = glm::vec3(0, 0, 0);
+
+	currentspeedMagnitude = magnitude(currentSpeed);
+	maxspeedMagnitude = magnitude(maxSpeed);
+
+	if (currentspeedMagnitude < maxspeedMagnitude)
+			velocity += acceleration;
+	
+	if (specialKeys[GLUT_KEY_DOWN]) { //Adding deltaTime makes the current speed magnitude static?
+		this->position += velDelta;
+
 		propellerRotForward = true;
 		propellerRotBackward = false;
 		propellerAngle += 5.0f;
+
+		accelInput -= 0.1;
+
+		if (accelInput < -1)
+			accelInput = -1;
+	}
+	else if (specialKeys[GLUT_KEY_UP]) {
+		this->position += velDelta;
+
+		propellerRotForward = true;
+		propellerRotBackward = false;
+		propellerAngle += 5.0f;
+		
+		accelInput += 0.1;
+
+		if (accelInput > 1)
+			accelInput = 1;
+	}
+	else
+	{//Deceleration
+		this->position += velDelta;
+		velocity *= frictionFactor;
+		//Velocity and current speed stay constant after this amount, so I am brute forcing by making them equal to zero
+		if (currentspeedMagnitude <= 0.153f)
+		{
+			velocity = glm::vec3(0, 0, 0);
+			currentspeedMagnitude = 0;
+		}
 	}
 
 	if (specialKeys[GLUT_KEY_PAGE_UP]) {
@@ -50,17 +112,26 @@ void Hovercraft::update(int deltaTime)
 
 	if (specialKeys[GLUT_KEY_LEFT]) {
 		this->rotationAngle += turningSpeed; //in degrees not radians
+		steerInput -= 0.1;
+		if (steerInput < -1)
+			steerInput = -1;
 	}
 
 	if (specialKeys[GLUT_KEY_RIGHT]) {
 		this->rotationAngle -= turningSpeed; //in degrees not radians
+		steerInput += 0.1;
+		if (steerInput > 1)
+			steerInput = 1;
 	}
 
 	this->heading = glm::rotate(this->startingHeading, glm::radians(rotationAngle), glm::vec3(0.0, 1.0, 0.0));
-	this->heading = glm::rotate(this->heading, glm::radians(pitchAngle), glm::vec3(0.0, 0.0, 1.0));
-
+	
 	if (propellerAngle > 360.0)
 		propellerAngle -= 360.0;
+
+	//Debugging
+	std:: cout << "currentspeedMagnitude: " << currentspeedMagnitude << " maxspeedMagnitude: " << maxspeedMagnitude << " acceleration: " << acceleration.x << " " << acceleration.y << " " << acceleration.z << " " << std::endl;
+	std::cout << "Velocity: " <<glm::to_string(velocity) << std::endl;
 }
 
 void Hovercraft::draw()
@@ -70,16 +141,17 @@ void Hovercraft::draw()
 
 	glPushMatrix();
 		glTranslatef(position.x, position.y, position.z); //Updates the position of the hovercraft
-		glColor3f(0.6, 1, 0.8); //Hovercraft colour
-		glScalef(0.5, 0.5, 0.5); 
+		//glColor3f(0.6, 1, 0.8); //Hovercraft colour
+		glScalef(0.4, 0.4, 0.4); 
 
 		glRotatef(pitchAngle, 0, 0, 1);
 		glRotatef(rotationAngle, 0, 1, 0); //Rotates the hovercraft when correct keys are inputted
 	
 		glPushMatrix();
 			glRotatef(180, 0, 1, 0); //Rotates the hovercraft into the correct position at start
-			glMaterialfv(GL_FRONT, GL_AMBIENT, matAmb1);
-			glMaterialfv(GL_FRONT, GL_DIFFUSE, matDif1);
+			//glMaterialfv(GL_FRONT, GL_AMBIENT, matAmb1);
+			//glMaterialfv(GL_FRONT, GL_DIFFUSE, matDif1);
+			glColor3f(0, 0, 0); //Hovercraft colour
 			hovercraft.drawObjQuads();
 
 			glPushMatrix();
@@ -103,46 +175,18 @@ void Hovercraft::draw()
 		glPopMatrix();
 	glPopMatrix();
 
+	//Heading 
+	glBegin(GL_LINES);
+		glColor3f(1.0, 0.0, 0.0);
+		glVertex3f(position.x, position.y, position.z);
+		glVertex3f(position.x + heading.x * 10, position.y + heading.y * 10, position.z + heading.z * 10);
+	glEnd();
+
 
 }
 
-void Hovercraft::movement(int key)
-{
-	//Captures left, right, up and down key inputs and adjusts the angles and x and z coordinates appropriately
-	//if (key == GLUT_KEY_LEFT)
-	//	angle = angle + 5.0; //Reason for the angle moving by +5 degrees when turning left is because OpenGL keeps track of angles counter-clockwise
-	//if (key == GLUT_KEY_RIGHT)
-	//	angle = angle - 5.0;
-	if (key == GLUT_KEY_UP)
-	{
-	//	position.x = position.x - sin(angle * PI / 180.0);
-	//	position.z = position.z - cos(angle * PI / 180.0);
-		propellerRotForward = true;
-		propellerAngle += 5.0f;
-
+void Hovercraft::collides(Collider* other) {
+	if (GameObject::debugMode) {
+		std::cout << "Hovercraft collides!" << std::endl;
 	}
-	if (key == GLUT_KEY_DOWN)
-	{
-	//	position.x = position.x + sin(angle * PI / 180.0);
-	//	position.z = position.z + cos(angle * PI / 180.0);
-		propellerRotBackward = true;
-		propellerAngle += 5.0f;
-	}
-
-	// Angle correction.
-	//if (angle > 360.0)
-	//	angle -= 360.0;
-	//if (angle < 0.0)
-	//	angle += 360.0;
-
-	if (propellerAngle > 360.0)
-		propellerAngle -= 360.0;
-
-	//If not holding down acceleration, make this boolean false
-	if(key != GLUT_KEY_UP)
-		propellerRotForward = false;
-
-	if (key != GLUT_KEY_DOWN)
-		propellerRotBackward = false;
-
 }

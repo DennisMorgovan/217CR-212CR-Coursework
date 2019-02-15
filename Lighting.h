@@ -18,6 +18,8 @@ private:
 	float p = 1.0; // Positional light?
 	float xAngle = 0.0, yAngle = 0.0; // Rotation angles of white light.
 public:
+	int spotlightOn = -1;
+
 	Lighting();
 	~Lighting();
 

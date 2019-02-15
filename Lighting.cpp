@@ -19,23 +19,23 @@ void Lighting::setupLighting()
 
 	/* turn on default lighting */
 	glEnable(GL_LIGHTING);
-	//glEnable(GL_LIGHT0);
-	glEnable(GL_LIGHT1);
+	glEnable(GL_LIGHT0);
+	glDisable(GL_LIGHT1);
 
 	// Light property vectors.
-	float lightAmb[] = { 0.0, 0.0, 0.0, 1.0 };
-	float lightDifAndSpec[] = { 1.0, 1.0, 1.0, 1.0 };
-	float globAmb[] = { 0.05, 0.05, 0.05, 1.0 };
+	//float lightAmb[] = { 0.0, 0.0, 0.0, 1.0 };
+	//float lightDifAndSpec[] = { 1.0, 1.0, 1.0, 1.0 };
+	//float globAmb[] = { 0.05, 0.05, 0.05, 1.0 };
 
 	// Light properties.
-	glLightfv(GL_LIGHT1, GL_AMBIENT, lightAmb);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, lightDifAndSpec);
-	glLightfv(GL_LIGHT1, GL_SPECULAR, lightDifAndSpec);
+	//glLightfv(GL_LIGHT1, GL_AMBIENT, lightAmb);
+	//glLightfv(GL_LIGHT1, GL_DIFFUSE, lightDifAndSpec);
+	//glLightfv(GL_LIGHT1, GL_SPECULAR, lightDifAndSpec);
 
 	// Material property vectors.
 	float matAmbAndDif[] = { 0.0, 0.0, 1.0, 1.0 };
-	float matSpec[] = { 1.0, 1.0, 1,0, 1.0 };
-	float matShine[] = { 50.0 };
+	float matSpec[] = { 0.2, 0.2, 0.2, 0.2 };
+	float matShine[] = { 100.0 };
 
 	// Material properties of sphere.
 	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, matAmbAndDif);
@@ -48,8 +48,6 @@ void Lighting::setupLighting()
 
 	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
-
-
 }
 
 void Lighting::drawLighting()
@@ -61,10 +59,6 @@ void Lighting::drawLighting()
 
 
 	// Light0 properties.
-	glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmb);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDifAndSpec0);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, lightDifAndSpec0);
-
 	glLightfv(GL_LIGHT1, GL_AMBIENT, lightAmb);
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, lightDifAndSpec0);
 	glLightfv(GL_LIGHT1, GL_SPECULAR, lightDifAndSpec0);
@@ -93,14 +87,13 @@ void Lighting::drawLighting()
 	glPopMatrix();
 
 	glEnable(GL_LIGHTING);
-
 }
 
 void Lighting::drawSpotlight(Hovercraft *hovercraft)
 {
-	float lightPos[] = { hovercraft->position.x, hovercraft->position.y + 50, hovercraft->position.z, 0.0 }; // Spotlight position.
-	static float spotAngle = 60.0; // Spotlight cone half-angle.
-	float spotDirection[] = { 0.0, -1.0, 0.0 }; // Spotlight direction.
+	float lightPos[] = { hovercraft->position.x, hovercraft->position.y + 20, hovercraft->position.z, 1.0 }; // Spotlight position.
+	static float spotAngle = 50.0; // Spotlight cone half-angle.
+	float spotDirection[] = { hovercraft->heading.x, -1.0, hovercraft->heading.z }; // Spotlight direction.
 	static float spotExponent = 2.0; // Spotlight exponent = attenuation factor.
 
 	glPushMatrix();
@@ -109,8 +102,20 @@ void Lighting::drawSpotlight(Hovercraft *hovercraft)
 		glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, spotAngle);
 		glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, spotDirection);
 		glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, spotExponent);
-		//glTranslatef(lightPos[0], lightPos[1], lightPos[2]);
 	glPopMatrix();
 
-	glTranslatef(lightPos[0], lightPos[1], lightPos[2]);
+
+	if (spotlightOn == -1)
+	{
+		// Draw the spotlight cone in wireframe after disabling lighting
+		glPushMatrix();
+		glDisable(GL_LIGHTING);
+		glRotatef(0, 90, 0, 1);
+		glColor3f(1.0, 1.0, 1.0);
+		glTranslatef(hovercraft->position.x + hovercraft->heading.x, 0.0, hovercraft->position.z + hovercraft->heading.z);
+		glRotatef(hovercraft->rotationAngle, 0, 1, 0);
+		glutWireCone(3.0 * tan(spotAngle / 180.0 * 3.1415), 3.0, 20, 20);
+		glEnable(GL_LIGHTING);
+		glPopMatrix();
+	}
 }

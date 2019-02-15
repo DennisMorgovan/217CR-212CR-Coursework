@@ -3,6 +3,9 @@
 
 #define PI 3.14159265
 
+int centerX;
+int centerY;
+
 Camera::Camera(Hovercraft* hovercraft, glm::vec3 cameraUp, glm::vec3 cameraCorrection)
 {
 	this->cameraUp = cameraUp;
@@ -24,6 +27,9 @@ void Camera::update()
 {
 	cameraPos = hovercraft->position + cameraCorrection;
 	cameraTarget = hovercraft->position;
+	
+	int centerX = glutGet(GLUT_WINDOW_WIDTH) / 2;
+	int centerY = glutGet(GLUT_WINDOW_HEIGHT) / 2;
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -32,12 +38,12 @@ void Camera::update()
 	cameraPos.z += pitch;
 	//glPushMatrix();
 
-	glTranslatef(0, 3.5, 0); //Move propeller back to where it started
+	glTranslatef(centerX, centerY, 0); //Move propeller back to where it started
 	glRotatef(angle, 0, 1, 0); //Apply rotation via the angle about the z axis
-	glTranslatef(0, -3.5, 0); //Move propeller to origin
+	glTranslatef(-centerX, -centerY, 0); //Move propeller to origin
 
 	if (cameraMode == 0)
-		gluLookAt(cameraPos.x, cameraPos.y, cameraPos.z, cameraTarget.x, cameraTarget.y, cameraTarget.z, cameraUp.x, cameraUp.y, cameraUp.z); //3rd person view from the back
+		gluLookAt(cameraPos.x , cameraPos.y, cameraPos.z, cameraTarget.x, cameraTarget.y, cameraTarget.z, cameraUp.x, cameraUp.y, cameraUp.z); //3rd person view from the back
 	else if (cameraMode == 1)
 		gluLookAt(cameraPos.x, cameraPos.y + 50, cameraPos.z, cameraTarget.x, cameraTarget.y, cameraTarget.z, cameraUp.x, cameraUp.y, cameraUp.z); //View from the top
 	else if (cameraMode == 2)

@@ -9,9 +9,10 @@
 #include<math.h>
 #include<fstream>
 #include<vector>
-#include "Obstacle.h"
-#include "Reader.h"
 #include "Hovercraft.h"
+
+#include "Reader.h"
+#include "Obstacle.h"
 #include "Racetrack.h"
 #include "Camera.h"
 #include "Lighting.h"
@@ -32,7 +33,7 @@ GLuint racetrackID = 1, hovercraftID = 1; //Unique identification for the displa
 glm::vec3 cameraUp(0, 1, 0), cameraCorrection(10 * cos(0), 5, 0); //Camera variables.
 
 //Object hovercraft;
-Hovercraft hovercraft(glm::vec3(0, 0, 0), (char *)"hovercraft_body_blender.obj", (char *)"hovercraft_propeller_blender.obj", hovercraftID); //Takes in a position vector, the model's path and the base ID of the hovercraft.
+Hovercraft hovercraft(glm::vec3(0, 0, 0), (char *)"hovercraft_blender_final.obj", (char *)"hovercraft_propeller_blender.obj", hovercraftID); //Takes in a position vector, the model's path and the base ID of the hovercraft.
 Racetrack racetrack(glm::vec3(0, -40.00, -105), (char *)"racetrack_blender.obj", racetrackID);
 Camera camera(&hovercraft, cameraUp, cameraCorrection); //Camera; requires a pointer to a hovercraft, an "up" vector
 Lighting lighting;
@@ -126,9 +127,7 @@ void idle()
 		currentTime = glutGet(GLUT_ELAPSED_TIME);
 		deltaTime = currentTime - lastTime;
 	}
-
 	fps = 1000 / deltaTime;
-	//std::cout << "FPS: " << fps << endl;
 
 	//Run update for all game objects.
 	//for (std::vector<GameObject*>::size_type i = 0; i != gameobjects.size(); i++) {
@@ -159,8 +158,6 @@ void display(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	floatToString(fpsString, 4, fps);
 
-	cout << fpsString << endl;
-
 	// Write text in isolated (i.e., before gluLookAt) translate block.
 	glPushMatrix();
 		glColor3f(1.0, 1.0, 1.0);
@@ -174,6 +171,7 @@ void display(void)
 	//grass field
 	glPushMatrix();
 		glColor3f(0, 1, 0);
+		//glScalef(10, 10, 10);
 		glTranslatef(0, 0, 0);
 		grassField.drawObjQuads();
 	glPopMatrix();
@@ -252,6 +250,21 @@ int main(int argc, char **argv)
 				glShadeModel(GL_FLAT);
 			shading *= -1;
 		}
+		else if (key == 'v')
+		{
+			if (lighting.spotlightOn == 1)
+			{
+				glDisable(GL_LIGHT0);
+				glEnable(GL_LIGHT1);
+			}
+			else
+			{
+				glEnable(GL_LIGHT0);
+				glDisable(GL_LIGHT1);
+			}
+
+			lighting.spotlightOn *= -1;
+		}
 	});
 
 	glutKeyboardUpFunc([](unsigned char key, int x, int y) {
@@ -277,11 +290,7 @@ int main(int argc, char **argv)
 	glutMainLoop(); //Starts game loop
 }
 
-
-//Acceleration
-//Make rotation using mosue wheel
 //Add GameEngine class
 //Make windmill + terrain
-//animate light - spotlight
-//Fix moving spotlight
-//loadidentity
+//add collision
+//add textures

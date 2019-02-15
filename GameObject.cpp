@@ -1,5 +1,7 @@
 #include "GameObject.h"
 
+bool GameObject::debugMode;
+
 unsigned int GameObject::setupDrawing(unsigned int listBase)
 {
 	return 0;
@@ -7,6 +9,11 @@ unsigned int GameObject::setupDrawing(unsigned int listBase)
 
 void GameObject::draw()
 {
+}
+
+void GameObject::collides(Collider * other)
+{
+
 }
 
 GameObject::GameObject(glm::vec3 position)

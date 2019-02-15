@@ -10,6 +10,8 @@ public:
 	Obstacle(glm::vec3 position, glm::vec3 objColour = {0, 0, 1});
 	~Obstacle();
 
+	void collides(Collider* other); ///<Virtual function to notify this game object that a collision has happened can be overridden (optional).
+
 	void draw();
 	void start();
 	void update(int deltaTime);
