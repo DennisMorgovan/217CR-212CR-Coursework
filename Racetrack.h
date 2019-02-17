@@ -1,6 +1,7 @@
 #pragma once
 #include "GameObject.h"
 #include "Reader.h"
+#include <iostream>
 
 class Racetrack : public GameObject
 {
@@ -15,5 +16,7 @@ public:
 	virtual void start() {};
 	virtual void start(char *fname, GLuint uniqueID);
 	virtual void update(int deltaTime);
+
+	void collides(Collider* other); ///<Virtual function to notify this game object that a collision has happened can be overridden (optional).
 };
 

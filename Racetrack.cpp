@@ -40,3 +40,9 @@ void Racetrack::draw()
 	//	racetrackrot = racetrackrot - 360;
 	
 }
+
+void Racetrack::collides(Collider* other) {
+	if (GameObject::debugMode) {
+		std::cout << "Hovercraft collides!" << std::endl;
+	}
+}

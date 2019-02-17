@@ -56,4 +56,45 @@ float CubeCollider::maxZ()
 
 void CubeCollider::Draw()
 {
+	glPushMatrix();
+	glBegin(GL_LINES);
+	glColor3f(1.0, 0.0, 0.0);
+	glVertex3f(this->minX(), this->minY(), this->minZ());
+	glVertex3f(this->maxX(), this->minY(), this->minZ());
+
+	glVertex3f(this->maxX(), this->minY(), this->minZ());
+	glVertex3f(this->maxX(), this->minY(), this->maxZ());
+
+	glVertex3f(this->maxX(), this->minY(), this->minZ());
+	glVertex3f(this->maxX(), this->maxY(), this->minZ());
+
+	glVertex3f(this->maxX(), this->maxY(), this->minZ());
+	glVertex3f(this->maxX(), this->maxY(), this->maxZ());
+
+	glVertex3f(this->maxX(), this->maxY(), this->maxZ());
+	glVertex3f(this->maxX(), this->minY(), this->maxZ());
+
+	glVertex3f(this->maxX(), this->minY(), this->maxZ());
+	glVertex3f(this->minX(), this->minY(), this->maxZ());
+
+	glVertex3f(this->minX(), this->minY(), this->maxZ());
+	glVertex3f(this->minX(), this->minY(), this->minZ());
+
+	glVertex3f(this->minX(), this->minY(), this->minZ());
+	glVertex3f(this->minX(), this->maxY(), this->minZ());
+
+	glVertex3f(this->minX(), this->maxY(), this->minZ());
+	glVertex3f(this->maxX(), this->maxY(), this->minZ());
+
+	glVertex3f(this->minX(), this->maxY(), this->minZ());
+	glVertex3f(this->minX(), this->maxY(), this->maxZ());
+
+	glVertex3f(this->minX(), this->minY(), this->maxZ());
+	glVertex3f(this->minX(), this->maxY(), this->maxZ());
+
+	glVertex3f(this->minX(), this->maxY(), this->maxZ());
+	glVertex3f(this->maxX(), this->maxY(), this->maxZ());
+
+	glEnd();
+	glPopMatrix();
 }

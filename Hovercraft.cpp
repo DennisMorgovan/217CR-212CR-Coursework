@@ -5,7 +5,7 @@
 
 Hovercraft::Hovercraft(glm::vec3 position, char *fnameBody, char *fnamePropeller, GLuint uniqueID) : GameObject(position)
 {
-	Hovercraft::collider = new CubeCollider(&this->position, 1.5, 1.5, 1.5);
+	Hovercraft::collider = new CubeCollider(&this->position, 5, 5, 5);
 
 	hovercraft.loadModelQuads(fnameBody, uniqueID);
 	hovercraftPropeller.loadModelQuads(fnamePropeller, uniqueID);
@@ -182,11 +182,16 @@ void Hovercraft::draw()
 		glVertex3f(position.x + heading.x * 10, position.y + heading.y * 10, position.z + heading.z * 10);
 	glEnd();
 
-
+	//if (debugMode) {
+	
+		this->collider->Draw();
+	//}
 }
 
 void Hovercraft::collides(Collider* other) {
-	if (GameObject::debugMode) {
+	//if (GameObject::debugMode) {
 		std::cout << "Hovercraft collides!" << std::endl;
-	}
+		velocity.x -= 1;
+		//velocity.z -= other->minZ();
+	//}
 }

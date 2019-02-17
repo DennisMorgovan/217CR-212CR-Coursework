@@ -23,7 +23,7 @@ using namespace std;
 #define PI 3.14159265
 
 //Globals
-Obstacle obstacle1 = Obstacle(glm::vec3(0, 0, 0), glm::vec3(1, 0, 0));
+Obstacle obstacle1 = Obstacle(glm::vec3(0, 1, 0), glm::vec3(1, 0, 0));
 Obstacle obstacle2 = Obstacle(glm::vec3(2, 2, 2), glm::vec3(0, 0, 1));
 
 int CameraMode; //Integer that determines the angle that the camera will take
@@ -33,7 +33,7 @@ GLuint racetrackID = 1, hovercraftID = 1; //Unique identification for the displa
 glm::vec3 cameraUp(0, 1, 0), cameraCorrection(10 * cos(0), 5, 0); //Camera variables.
 
 //Object hovercraft;
-Hovercraft hovercraft(glm::vec3(0, 0, 0), (char *)"hovercraft_blender_final.obj", (char *)"hovercraft_propeller_blender.obj", hovercraftID); //Takes in a position vector, the model's path and the base ID of the hovercraft.
+Hovercraft hovercraft(glm::vec3(0, 0, 0), (char *)"hovercraft_body_blender.obj", (char *)"hovercraft_propeller_blender.obj", hovercraftID); //Takes in a position vector, the model's path and the base ID of the hovercraft.
 Racetrack racetrack(glm::vec3(0, -40.00, -105), (char *)"racetrack_blender.obj", racetrackID);
 Camera camera(&hovercraft, cameraUp, cameraCorrection); //Camera; requires a pointer to a hovercraft, an "up" vector
 Lighting lighting;
@@ -46,6 +46,7 @@ int lastTime = 0, currentTime = 0, deltaTime = 1, fps;
 //Stores keys as pairs of key and state (true = pressed, false = released)
 std::map <int, bool> GameObject::specialKeys;
 std::map <char, bool> GameObject::keys;
+std::vector<GameObject*> gameObjects;
 
 static long font = (long)GLUT_BITMAP_8_BY_13; // Font selection.
 static char fpsString[5];
@@ -73,6 +74,7 @@ void setup(void)
 	glEnable(GL_MULTISAMPLE);
 
 	grassField.loadModelQuads((char*)"grass_field_blender.obj", 1);
+
 
 	//Functions that are called to setup basic OpenGL lighting
 	lighting.setupLighting();
@@ -108,12 +110,6 @@ void mouseMotion(int x, int y)
 	camera.mouseMotion(x, y);
 }
 
-void animate() {
-	
-	/* refresh screen */
-	glutPostRedisplay();
-}
-
 void idle()
 {
 	//Calculates delta time (in ms)
@@ -135,6 +131,11 @@ void idle()
 	//}	
 
 	hovercraft.update(deltaTime);
+
+	if (hovercraft.collider->collidesWith(obstacle1.collider))
+	{
+		hovercraft.collides(obstacle1.collider);
+	}
 
 	glutPostRedisplay(); //Refreshes the current window
 }
@@ -176,11 +177,12 @@ void display(void)
 		grassField.drawObjQuads();
 	glPopMatrix();
 	
+	obstacle1.draw();
+
 	//Racetrack
 	racetrack.draw();
 
 	lighting.drawLighting();
-
 	lighting.drawSpotlight(&hovercraft);
 
 	camera.update(); //Updating camera position

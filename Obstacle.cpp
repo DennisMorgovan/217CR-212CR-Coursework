@@ -35,8 +35,18 @@ void Obstacle::draw()
 {
 	glPushMatrix();
 		glTranslatef(this->position.x, this->position.y, this->position.z);
-		glCallList(this->base);
+		glPushMatrix();
+		glRotatef(-45, 1, 0, 0);
+		glColor3f(this->colour.x, this->colour.y, this->colour.z);
+		//glScalef(30, 30, 30);
+		glutSolidSphere(1.0, 40, 40);
+		glPopMatrix();
+		//glCallList(this->base);
 	glPopMatrix();
+
+	//if (debugMode) {
+		this->collider->Draw();
+	//}
 }
 
 void Obstacle::start() {
@@ -52,6 +62,7 @@ unsigned int  Obstacle::setupDrawing(unsigned int listBase) {
 		glPushMatrix();
 			glRotatef(-45, 1, 0, 0);
 			glColor3f(this->colour.x, this->colour.y, this->colour.z);
+			glScalef(30, 30, 30);
 			glutSolidSphere(1.0, 40, 40);
 		glPopMatrix();
 	glEndList();
