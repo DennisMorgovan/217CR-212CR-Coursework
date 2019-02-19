@@ -38,6 +38,7 @@ void Hovercraft::start(char *fnameBody,char *fnamePropeller, GLuint uniqueID)
 {
 	hovercraft.loadModelQuads(fnameBody, uniqueID);
 	hovercraftPropeller.loadModelQuads(fnamePropeller, uniqueID);
+
 }
 
 float Hovercraft::magnitude(glm::vec3 a)
@@ -50,7 +51,10 @@ void Hovercraft::update(int deltaTime)
 	float turningSpeed = TURNING_SPEED * (deltaTime / 1000.0); //turning speed (degrees/sec) * deltaTime in sec = turning speed over delta time
 	float velocityMagnitude, currentspeedMagnitude, maxspeedMagnitude;//Vector magnitudes
 
+//	float length = sqrt(acceleration.x * acceleration.x + acceleration.y * acceleration.y + acceleration.z * acceleration.z);
+
 	this->acceleration = this->heading * accelFactor * accelInput; //Computing the acceleration
+	//this->acceleration /= length;
 	glm::vec3 velDelta = velocity * (deltaTime / 1000.0f);
 
 	velocityMagnitude = magnitude(velDelta);
@@ -191,7 +195,12 @@ void Hovercraft::draw()
 void Hovercraft::collides(Collider* other) {
 	//if (GameObject::debugMode) {
 		std::cout << "Hovercraft collides!" << std::endl;
-		velocity.x -= 1;
+		//velocity.x -= 5;
+		//if (velocity.x < -10)
+		//	velocity.x = 0;
+		
+		position.x -= other->minX();
+		//velocity.x -= other->minX();
 		//velocity.z -= other->minZ();
 	//}
 }

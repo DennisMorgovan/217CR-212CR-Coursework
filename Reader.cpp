@@ -33,6 +33,7 @@ void Reader::loadObj(char *fname, GLuint uniqueID)
 		read = fscanf(fp, "%c %f %f %f", &character, &x, &y, &z); // Reads lines as sets of character, x coord, y coord, z coord, and returns the number of elements successfully read
 		if (read == 4 && character == 'v') //If the number of elements read is equal to 4 (char, x, y and z) and the character is v (if it's a vertex), add it to vertices vector
 		{
+
 			//Adds coordinates to their respective vector
 			vertices[indexVertex].x = x;
 			vertices[indexVertex].y = y;

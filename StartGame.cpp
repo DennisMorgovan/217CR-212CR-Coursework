@@ -33,8 +33,8 @@ GLuint racetrackID = 1, hovercraftID = 1; //Unique identification for the displa
 glm::vec3 cameraUp(0, 1, 0), cameraCorrection(10 * cos(0), 5, 0); //Camera variables.
 
 //Object hovercraft;
-Hovercraft hovercraft(glm::vec3(0, 0, 0), (char *)"hovercraft_body_blender.obj", (char *)"hovercraft_propeller_blender.obj", hovercraftID); //Takes in a position vector, the model's path and the base ID of the hovercraft.
-Racetrack racetrack(glm::vec3(0, -40.00, -105), (char *)"racetrack_blender.obj", racetrackID);
+Hovercraft hovercraft(glm::vec3(10, 0, 0), (char *)"./Models/hovercraft_body_blender.obj", (char *)"./Models/hovercraft_propeller_blender.obj", hovercraftID); //Takes in a position vector, the model's path and the base ID of the hovercraft.
+Racetrack racetrack(glm::vec3(0, -40.00, -105), (char *)"./Models/racetrack_blender.obj", racetrackID);
 Camera camera(&hovercraft, cameraUp, cameraCorrection); //Camera; requires a pointer to a hovercraft, an "up" vector
 Lighting lighting;
 Reader grassField;
@@ -55,8 +55,9 @@ static char fpsString[5];
 void writeBitmapString(void *font, char *string)
 {
 	char *c;
-
-	for (c = string; *c != '\0'; c++) glutBitmapCharacter(font, *c);
+	
+	for (c = string; *c != '\0'; c++) 
+		glutBitmapCharacter(font, *c);
 }
 
 //Converts a float to an array of chars
@@ -73,7 +74,7 @@ void setup(void)
 	glClearColor(0, 0, 0, 0);
 	glEnable(GL_MULTISAMPLE);
 
-	grassField.loadModelQuads((char*)"grass_field_blender.obj", 1);
+	grassField.loadModelQuads((char*)"./Models/grass_field_blender.obj", 1);
 
 
 	//Functions that are called to setup basic OpenGL lighting
@@ -135,6 +136,7 @@ void idle()
 	if (hovercraft.collider->collidesWith(obstacle1.collider))
 	{
 		hovercraft.collides(obstacle1.collider);
+		obstacle1.collides(hovercraft.collider);
 	}
 
 	glutPostRedisplay(); //Refreshes the current window

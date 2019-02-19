@@ -56,6 +56,7 @@ float CubeCollider::maxZ()
 
 void CubeCollider::Draw()
 {
+
 	glPushMatrix();
 	glBegin(GL_LINES);
 	glColor3f(1.0, 0.0, 0.0);

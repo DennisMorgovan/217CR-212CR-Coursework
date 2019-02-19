@@ -105,17 +105,26 @@ void Lighting::drawSpotlight(Hovercraft *hovercraft)
 	glPopMatrix();
 
 
-	if (spotlightOn == -1)
+	if (spotlightOn == 1)
 	{
 		// Draw the spotlight cone in wireframe after disabling lighting
 		glPushMatrix();
-		glDisable(GL_LIGHTING);
-		glRotatef(0, 90, 0, 1);
-		glColor3f(1.0, 1.0, 1.0);
-		glTranslatef(hovercraft->position.x + hovercraft->heading.x, 0.0, hovercraft->position.z + hovercraft->heading.z);
-		glRotatef(hovercraft->rotationAngle, 0, 1, 0);
-		glutWireCone(3.0 * tan(spotAngle / 180.0 * 3.1415), 3.0, 20, 20);
-		glEnable(GL_LIGHTING);
+			glDisable(GL_LIGHTING);
+			glRotatef(0, 90, 0, 1);
+			glColor3f(1.0, 1.0, 1.0);
+			glTranslatef(hovercraft->position.x + hovercraft->heading.x, 0.0, hovercraft->position.z + hovercraft->heading.z);
+			glRotatef(hovercraft->rotationAngle, 0, 1, 0);
+			glutWireCone(3.0 * tan(spotAngle / 180.0 * 3.1415), 3.0, 20, 20);
+			glEnable(GL_LIGHTING);
 		glPopMatrix();
+
+		glDisable(GL_LIGHT0);
+		glEnable(GL_LIGHT1);
+
+	}
+	else
+	{
+		glEnable(GL_LIGHT0);
+		glDisable(GL_LIGHT1);
 	}
 }
