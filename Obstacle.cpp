@@ -10,11 +10,13 @@
 #include "CubeCollider.h"
 #include<iostream>
 
-Obstacle::Obstacle(glm::vec3 position, glm::vec3 objColour) : GameObject(position)
+Obstacle::Obstacle(glm::vec3 position, glm::vec3 objColour, float matBounce) : GameObject(position)
 {
 	this->colour = objColour;
 
-	Obstacle::collider = new CubeCollider(&this->position, 2, 2, 2);
+	Obstacle::collider = new CubeCollider(&this->position, 2, 2, 2, matBounce);
+
+	this->collider->objectType = 2;
 }
 
 Obstacle::~Obstacle()

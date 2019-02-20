@@ -25,7 +25,7 @@ void Racetrack::draw()
 {
 	//Racetrack transform
 	glPushMatrix();
-		glTranslatef(0, 1, 0);
+		glTranslatef(0, 9, 0);
 		glColor3f(1.0, 0.23, 0.27);
 		glScalef(1, 1, 1);
 		glRotatef(racetrackrot, 0, 1, 0);

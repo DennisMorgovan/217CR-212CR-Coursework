@@ -1,11 +1,12 @@
 #include "CubeCollider.h"
 
-CubeCollider::CubeCollider(glm::vec3 * centre, float cubeWidth, float cubeHeight, float cubeLength)
+CubeCollider::CubeCollider(glm::vec3 * centre, float cubeWidth, float cubeHeight, float cubeLength, float materialBounce)
 {
 	this->colliderCentre = centre;
 	this->width = cubeWidth;
 	this->height = cubeHeight;
 	this->length = cubeLength;
+	this->materialBounce = materialBounce;
 }
 
 CubeCollider::~CubeCollider()

@@ -17,7 +17,7 @@ public:
 	float maxZ(); ///<Highest z value for the collider. Must override in inherited classes.
 	void Draw(); ///<Draw method for debug mode. Must override in inherited classes.
 
-	CubeCollider(glm::vec3 * centre, float cubeWidth, float cubeHeight, float cubeLength);
+	CubeCollider(glm::vec3 * centre, float cubeWidth, float cubeHeight, float cubeLength, float materialBounce);
 	~CubeCollider();
 };
 

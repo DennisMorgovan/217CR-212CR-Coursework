@@ -99,6 +99,10 @@ void Reader::loadObjQuads(char *fname, GLuint uniqueID)
 	fclose(fp);
 }
 
+void Reader::LoadObjCollider(char * fname, GLuint uniqueID, std::vector<Collider*> racetrackColliders)
+{
+}
+
 
 void Reader::calculateNormals()
 {
@@ -136,7 +140,7 @@ void Reader::calculateNormals()
 		// length = sqrt(N.x * N.x + N.y * N.y + N.z * N.z)  -  Pythagora's theorem in 3D space
 		length = sqrt(testNor.x*testNor.x + testNor.y*testNor.y + testNor.z*testNor.z);
 		
-		//
+		
 		unitNor.x = testNor.x / length;
 		unitNor.y = testNor.y / length;
 		unitNor.z = testNor.z / length;
@@ -186,6 +190,7 @@ void Reader::drawObj()
 {
 	int id;
 
+
 	glPointSize(2.0); //Sets vertex draw size
 	glNewList(this->uniqueID, GL_COMPILE); //Creates a GL display list to be executed (a series of commands that end at glEndList(); ); first argument is the name of the list, second is the mode; GL_COMPILE means the commands are simply compiled, not executed
 	{
@@ -196,6 +201,7 @@ void Reader::drawObj()
 				id = (int)faces[i].x;
 				glNormal3d(normal[id].x, normal[id].y, normal[id].z);
 				glVertex3f(vertices[id - 1].x, vertices[id - 1].y, vertices[id - 1].z);
+
 
 				id = (int)faces[i].y;
 				glNormal3d(normal[id].x, normal[id].y, normal[id].z);

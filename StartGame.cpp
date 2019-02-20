@@ -6,25 +6,29 @@
 #include <GL/freeglut.h>
 #pragma comment(lib, "glew32.lib") 
 #endif 
-#include<math.h>
-#include<fstream>
-#include<vector>
-#include "Hovercraft.h"
 
+#include <math.h>
+#include <fstream>
+#include <vector>
+#include <iostream>
+#include <stdio.h>
+#include <iterator>
+
+#include "Hovercraft.h"
 #include "Reader.h"
 #include "Obstacle.h"
 #include "Racetrack.h"
 #include "Camera.h"
 #include "Lighting.h"
-#include<iostream>
-#include <stdio.h>
+#include "Grassfield.h"
+
 using namespace std;
 
 #define PI 3.14159265
 
 //Globals
-Obstacle obstacle1 = Obstacle(glm::vec3(0, 1, 0), glm::vec3(1, 0, 0));
-Obstacle obstacle2 = Obstacle(glm::vec3(2, 2, 2), glm::vec3(0, 0, 1));
+Obstacle obstacle1 = Obstacle(glm::vec3(0, 1, 0), glm::vec3(1, 0, 0), 5);
+Obstacle obstacle2 = Obstacle(glm::vec3(7, 1, 10), glm::vec3(0, 0, 1), 15);
 
 int CameraMode; //Integer that determines the angle that the camera will take
 
@@ -32,12 +36,14 @@ GLuint racetrackID = 1, hovercraftID = 1; //Unique identification for the displa
 
 glm::vec3 cameraUp(0, 1, 0), cameraCorrection(10 * cos(0), 5, 0); //Camera variables.
 
+//GameObject* hovercraft = new Hovercraft(glm::vec3(10, 0, 0), (char *)"./Models/hovercraft_body_blender.obj", (char *)"./Models/hovercraft_propeller_blender.obj", hovercraftID); 
+
 //Object hovercraft;
 Hovercraft hovercraft(glm::vec3(10, 0, 0), (char *)"./Models/hovercraft_body_blender.obj", (char *)"./Models/hovercraft_propeller_blender.obj", hovercraftID); //Takes in a position vector, the model's path and the base ID of the hovercraft.
 Racetrack racetrack(glm::vec3(0, -40.00, -105), (char *)"./Models/racetrack_blender.obj", racetrackID);
 Camera camera(&hovercraft, cameraUp, cameraCorrection); //Camera; requires a pointer to a hovercraft, an "up" vector
 Lighting lighting;
-Reader grassField;
+Grassfield grassfield(glm::vec3(0, 0, 0), (char*)"./Models/grass_field_blender.obj", 1);
 
 int msaa = 1, shading = 1; //Multisampling
 
@@ -47,9 +53,14 @@ int lastTime = 0, currentTime = 0, deltaTime = 1, fps;
 std::map <int, bool> GameObject::specialKeys;
 std::map <char, bool> GameObject::keys;
 std::vector<GameObject*> gameObjects;
+std::vector<Collider*> cubeColliderVector;
+//std::vector<Obstacle*> obstacles;
+
+//std::vector <Obstacle> obstacles;
 
 static long font = (long)GLUT_BITMAP_8_BY_13; // Font selection.
-static char fpsString[5];
+static char fpsString[5], currentSpeedString[10];
+float currentSpeed;
 
 // Routine to draw a bitmap character string.
 void writeBitmapString(void *font, char *string)
@@ -74,8 +85,12 @@ void setup(void)
 	glClearColor(0, 0, 0, 0);
 	glEnable(GL_MULTISAMPLE);
 
-	grassField.loadModelQuads((char*)"./Models/grass_field_blender.obj", 1);
+	//grassField.loadModelQuads((char*)"./Models/grass_field_blender.obj", 1);
 
+	cubeColliderVector.push_back(hovercraft.collider);
+	cubeColliderVector.push_back(obstacle1.collider);
+	cubeColliderVector.push_back(obstacle2.collider);
+	cubeColliderVector.push_back(grassfield.collider);
 
 	//Functions that are called to setup basic OpenGL lighting
 	lighting.setupLighting();
@@ -126,18 +141,26 @@ void idle()
 	}
 	fps = 1000 / deltaTime;
 
-	//Run update for all game objects.
-	//for (std::vector<GameObject*>::size_type i = 0; i != gameobjects.size(); i++) {
-	//	gameobjects[i]->update(deltaTime);
-	//}	
-
+	//Updates
 	hovercraft.update(deltaTime);
 
-	if (hovercraft.collider->collidesWith(obstacle1.collider))
-	{
-		hovercraft.collides(obstacle1.collider);
-		obstacle1.collides(hovercraft.collider);
+	for (std::vector<Collider*>::size_type i = 0; i != cubeColliderVector.size(); i++) {
+		for (std::vector<Collider*>::size_type j = i + 1; j != cubeColliderVector.size(); j++) {
+			if (cubeColliderVector[i] != NULL) {
+				if (cubeColliderVector[i]->collidesWith(cubeColliderVector[j]))//If it collides
+				{
+					if (cubeColliderVector[i]->objectType == 1 && cubeColliderVector[j]->objectType == 2) //If first object is hovercraft & second one is obstacle
+						hovercraft.collides(cubeColliderVector[j], cubeColliderVector[j]->materialBounce);
+					if (cubeColliderVector[i]->objectType == 1 && cubeColliderVector[j]->objectType == 3) //If first object is hovercraft & second one is grass
+						hovercraft.collidesWithGround = true;
+					else
+						hovercraft.collidesWithGround = false;
+				}
+			}
+		}
 	}
+
+	currentSpeed = hovercraft.currentspeedMagnitude * 10;
 
 	glutPostRedisplay(); //Refreshes the current window
 }
@@ -160,6 +183,7 @@ void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	floatToString(fpsString, 4, fps);
+	floatToString(currentSpeedString, 5, currentSpeed);
 
 	// Write text in isolated (i.e., before gluLookAt) translate block.
 	glPushMatrix();
@@ -169,17 +193,19 @@ void display(void)
 		writeBitmapString((void*)font, (char *)"FPS: ");
 		glWindowPos2f(1750, 1000);
 		writeBitmapString((void*)font, fpsString);
+		glColor3f(1.0, 1.0, 1.0);
+		glScalef(10, 10, 10);
+		glWindowPos2f(50, 100);
+		writeBitmapString((void*)font, (char *)"Speed: ");
+		glWindowPos2f(100, 100);
+		writeBitmapString((void*)font, currentSpeedString);
 	glPopMatrix();
 
 	//grass field
-	glPushMatrix();
-		glColor3f(0, 1, 0);
-		//glScalef(10, 10, 10);
-		glTranslatef(0, 0, 0);
-		grassField.drawObjQuads();
-	glPopMatrix();
+	grassfield.draw();
 	
 	obstacle1.draw();
+	obstacle2.draw();
 
 	//Racetrack
 	racetrack.draw();
@@ -296,5 +322,6 @@ int main(int argc, char **argv)
 
 //Add GameEngine class
 //Make windmill + terrain
-//add collision
 //add textures
+//added ground friction
+//https://www.gamedev.net/articles/programming/math-and-physics/a-verlet-based-approach-for-2d-game-physics-r2714/

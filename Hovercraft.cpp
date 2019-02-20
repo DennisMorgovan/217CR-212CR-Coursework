@@ -1,11 +1,13 @@
 #include "Hovercraft.h"
 
 #define PI 3.14159265
+#define p 1.225 
 
 
 Hovercraft::Hovercraft(glm::vec3 position, char *fnameBody, char *fnamePropeller, GLuint uniqueID) : GameObject(position)
 {
-	Hovercraft::collider = new CubeCollider(&this->position, 5, 5, 5);
+	colliderSize = 5;
+	Hovercraft::collider = new CubeCollider(&this->position, colliderSize, colliderSize, colliderSize, 1);
 
 	hovercraft.loadModelQuads(fnameBody, uniqueID);
 	hovercraftPropeller.loadModelQuads(fnamePropeller, uniqueID);
@@ -17,15 +19,19 @@ Hovercraft::Hovercraft(glm::vec3 position, char *fnameBody, char *fnamePropeller
 	currentSpeed.y = 0.0;
 	currentSpeed.z = 0.0;
 
-	maxSpeed.x = 5.0;
-	maxSpeed.y = 5.0;
-	maxSpeed.z = 5.0;
+	maxSpeed.x = 1.0;
+	maxSpeed.y = 1.0;
+	maxSpeed.z = 1.0;
 
 	velocity.x = 0.0;
 	velocity.y = 0.0;
 	velocity.z = 0.0;
 
+	surfaceArea = colliderSize * colliderSize;
+	dragC = 0.1;
+
 	isDecelerating = false;
+	this->collider->objectType = 1;
 }
 
 Hovercraft::~Hovercraft()
@@ -38,7 +44,6 @@ void Hovercraft::start(char *fnameBody,char *fnamePropeller, GLuint uniqueID)
 {
 	hovercraft.loadModelQuads(fnameBody, uniqueID);
 	hovercraftPropeller.loadModelQuads(fnamePropeller, uniqueID);
-
 }
 
 float Hovercraft::magnitude(glm::vec3 a)
@@ -49,12 +54,15 @@ float Hovercraft::magnitude(glm::vec3 a)
 void Hovercraft::update(int deltaTime)
 {
 	float turningSpeed = TURNING_SPEED * (deltaTime / 1000.0); //turning speed (degrees/sec) * deltaTime in sec = turning speed over delta time
-	float velocityMagnitude, currentspeedMagnitude, maxspeedMagnitude;//Vector magnitudes
+	airDrag = (p * currentspeedMagnitude * currentspeedMagnitude * surfaceArea * dragC) / 2;
 
-//	float length = sqrt(acceleration.x * acceleration.x + acceleration.y * acceleration.y + acceleration.z * acceleration.z);
+	if (collidesWithGround)
+		groundFriction = 0.9;
+	else
+		groundFriction = 1;
 
 	this->acceleration = this->heading * accelFactor * accelInput; //Computing the acceleration
-	//this->acceleration /= length;
+
 	glm::vec3 velDelta = velocity * (deltaTime / 1000.0f);
 
 	velocityMagnitude = magnitude(velDelta);
@@ -68,7 +76,7 @@ void Hovercraft::update(int deltaTime)
 	maxspeedMagnitude = magnitude(maxSpeed);
 
 	if (currentspeedMagnitude < maxspeedMagnitude)
-			velocity += acceleration;
+			velocity += acceleration * groundFriction;
 	
 	if (specialKeys[GLUT_KEY_DOWN]) { //Adding deltaTime makes the current speed magnitude static?
 		this->position += velDelta;
@@ -145,7 +153,6 @@ void Hovercraft::draw()
 
 	glPushMatrix();
 		glTranslatef(position.x, position.y, position.z); //Updates the position of the hovercraft
-		//glColor3f(0.6, 1, 0.8); //Hovercraft colour
 		glScalef(0.4, 0.4, 0.4); 
 
 		glRotatef(pitchAngle, 0, 0, 1);
@@ -186,21 +193,12 @@ void Hovercraft::draw()
 		glVertex3f(position.x + heading.x * 10, position.y + heading.y * 10, position.z + heading.z * 10);
 	glEnd();
 
-	//if (debugMode) {
-	
-		this->collider->Draw();
-	//}
+	this->collider->Draw();
+
 }
 
-void Hovercraft::collides(Collider* other) {
-	//if (GameObject::debugMode) {
-		std::cout << "Hovercraft collides!" << std::endl;
-		//velocity.x -= 5;
-		//if (velocity.x < -10)
-		//	velocity.x = 0;
-		
-		position.x -= other->minX();
-		//velocity.x -= other->minX();
-		//velocity.z -= other->minZ();
-	//}
+void Hovercraft::collides(Collider* other, float materialBounce) {
+
+		velocity.x -= heading.x * materialBounce;
+		velocity.z -= heading.z * materialBounce;
 }

@@ -14,6 +14,8 @@ protected:
 	glm::vec3* colliderCentre = NULL; ///<Centre point for the collider @note Usually the same as the gameobject it is a collider for.
 public:
 	virtual bool collidesWith(Collider* other) = 0; ///<pure virtual function. very collider must implement collidesWith, which calculates whethwer this collider collides with other.
+	int objectType = 0;
+	float materialBounce;
 
 	/* Every collider must implement the following pure virtual function or otherwise cause a compile error.*/
 	virtual float minX() = 0; ///<Lowest x value for the collider. Must override in inherited classes.

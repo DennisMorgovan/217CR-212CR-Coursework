@@ -10,6 +10,8 @@
 #endif 
 
 #include<vector>
+#include "Collider.h"
+#include "CubeCollider.h"
 
 const int maxVertices = 5000;
 
@@ -36,12 +38,16 @@ private:
 	int faceNumber; //Total number of faces of the object
 
 public:
+
+
 	Reader();
 	~Reader();
 
 	void loadObj(char *fname, GLuint uniqueID); //Reads the object data
 
 	void loadObjQuads(char *fname, GLuint uniqueID);
+
+	void LoadObjCollider(char *fname, GLuint uniqueID, std::vector<Collider*> racetrackColliders);
 
 	void calculateNormals(); //Calculates normals using read data
 

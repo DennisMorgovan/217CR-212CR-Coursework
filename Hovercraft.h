@@ -26,11 +26,17 @@ private:
 	bool isDecelerating;
 
 	float frictionFactor = 0.95f;
+
+	//dragC = air drag coefficient; surface area = surface area of front of collider
+	float colliderSize, airDrag, dragC, surfaceArea;
 public:
 	float angle; //Angle of hovercraft movement
 	glm::vec3 startingHeading = heading; ///<Starting facing direction of the Hovercraft.
 	glm::vec3 newHeading;
 	float rotationAngle, pitchAngle = 0.0; ///<Rotation and pitch angles for our Hovercraft
+	bool collidesWithGround;
+	float groundFriction = 1;
+	float velocityMagnitude, currentspeedMagnitude, maxspeedMagnitude;//Vector magnitudes
 
 	Hovercraft(glm::vec3 position, char *fnameBody, char *fnamePropeller, GLuint uniqueID);
 	virtual ~Hovercraft();
@@ -40,7 +46,7 @@ public:
 	virtual void start(char *fnameBody, char *fnamePropeller, GLuint uniqueID);
 	virtual void update(int deltaTime);
 
-	void collides(Collider* other); ///<Virtual function to notify this game object that a collision has happened can be overridden (optional).
+	void collides(Collider* other, float materialBounce); ///<Virtual function to notify this game object that a collision has happened can be overridden (optional).
 
 	float magnitude(glm::vec3 a);
 };
